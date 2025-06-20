@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { managerAPI } from '../services/api';
+import { managerAPI } from '../services/managerAPI';
 import Button from '../components/common/Button';
 import Select from '../components/common/Select';
 import Table from '../components/common/Table';

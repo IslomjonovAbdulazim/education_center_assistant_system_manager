@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { managerAPI } from '../services/api';
+import { managerAPI } from '../services/managerAPI';
 
 // Simple Chart Components
 const BarChart = ({ data, height = 200 }) => {
