@@ -1,21 +1,34 @@
-import React, { useState } from 'react';
-import { authAPI } from '../services/managerAPI';
+import React, { useState, useEffect } from 'react';
+import { authService } from '../services/auth';
+import { validatePhone } from '../types';
 
 const Login = ({ onLogin }) => {
   const [formData, setFormData] = useState({
-    phone: '+998901234567',
-    password: 'password',
-    learning_center_id: '1'
+    phone: '+998',
+    password: '',
+    learning_center_id: ''
   });
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
 
+  // Check if already authenticated
+  useEffect(() => {
+    if (authService.isAuthenticated()) {
+      onLogin();
+    }
+  }, [onLogin]);
+
   const handleChange = (e) => {
-    setFormData({
-      ...formData,
-      [e.target.name]: e.target.value
-    });
-    setError('');
+    const { name, value } = e.target;
+    setFormData(prev => ({
+      ...prev,
+      [name]: value
+    }));
+    
+    // Clear error when user starts typing
+    if (error) {
+      setError('');
+    }
   };
 
   const handleSubmit = async (e) => {
@@ -24,20 +37,31 @@ const Login = ({ onLogin }) => {
     setError('');
 
     try {
-      const response = await authAPI.login({
-        phone: formData.phone,
-        password: formData.password,
-        learning_center_id: parseInt(formData.learning_center_id)
-      });
-      
-      if (response.data.user_info.role !== 'manager') {
-        setError('Access denied. Manager access required.');
-        return;
+      // Validation
+      if (!validatePhone(formData.phone)) {
+        throw new Error('Phone number must be in format +998XXXXXXXXX');
       }
-      
-      onLogin(response.data.token, response.data.user_info);
+
+      if (!formData.password) {
+        throw new Error('Password is required');
+      }
+
+      if (!formData.learning_center_id) {
+        throw new Error('Learning Center ID is required');
+      }
+
+      // Attempt login
+      const { token, user } = await authService.login(
+        formData.phone,
+        formData.password,
+        parseInt(formData.learning_center_id)
+      );
+
+      // Success - call parent callback
+      onLogin(token, user);
+
     } catch (err) {
-      setError(err.response?.data?.detail || 'Login failed');
+      setError(err.toString());
     } finally {
       setLoading(false);
     }
@@ -46,11 +70,15 @@ const Login = ({ onLogin }) => {
   return (
     <div className="login-container">
       <div className="login-card">
-        <form onSubmit={handleSubmit}>
-          <h1>Manager Portal</h1>
-          
-          {error && <div className="alert alert-error">{error}</div>}
+        <h1>Manager Login</h1>
+        
+        {error && (
+          <div className="alert alert-error">
+            {error}
+          </div>
+        )}
 
+        <form onSubmit={handleSubmit}>
           <div className="form-group">
             <label className="form-label">Phone Number</label>
             <input
@@ -85,34 +113,44 @@ const Login = ({ onLogin }) => {
               className="form-input"
               value={formData.learning_center_id}
               onChange={handleChange}
-              placeholder="1, 2, 3..."
+              placeholder="Enter learning center ID"
               required
             />
+            <div style={{ fontSize: '12px', color: '#6b7280', marginTop: '4px' }}>
+              Contact your administrator if you don't know your center ID
+            </div>
           </div>
 
           <button
             type="submit"
             className="btn btn-primary"
-            disabled={loading}
             style={{ width: '100%', marginTop: '20px' }}
+            disabled={loading}
           >
             {loading ? (
               <>
-                <div className="loading-spinner" style={{ width: '16px', height: '16px' }}></div>
+                <div className="spinner" style={{ marginRight: '8px' }}></div>
                 Logging in...
               </>
             ) : (
-              'Login to Dashboard'
+              'Login'
             )}
           </button>
-
-          <div style={{ marginTop: '20px', fontSize: '12px', color: '#718096', textAlign: 'center' }}>
-            <p><strong>Demo Manager Account:</strong></p>
-            <p>Phone: +998901234567</p>
-            <p>Password: password</p>
-            <p>Center ID: 1</p>
-          </div>
         </form>
+
+        <div style={{ 
+          marginTop: '30px', 
+          padding: '20px', 
+          backgroundColor: '#f8fafc', 
+          borderRadius: '8px',
+          fontSize: '14px',
+          color: '#6b7280'
+        }}>
+          <strong>Demo Credentials:</strong><br />
+          Phone: +998901234567<br />
+          Password: demo123<br />
+          Center ID: 1
+        </div>
       </div>
     </div>
   );

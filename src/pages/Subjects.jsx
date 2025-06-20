@@ -1,274 +1,319 @@
 import React, { useState, useEffect } from 'react';
-import { managerAPI } from '../services/managerAPI';
-import Button from '../components/common/Button';
-import Input from '../components/common/Input';
+import { managerAPI } from '../services/api';
+import { Plus, Edit, Trash2, BookOpen, Users, GraduationCap } from 'lucide-react';
+import Modal, { ConfirmModal } from '../components/Modal';
 
-const SubjectCard = ({ subject, onEdit, onDelete }) => {
-  return (
-    <div className="card" style={{ 
-      background: 'linear-gradient(135deg, rgba(102, 126, 234, 0.05) 0%, rgba(118, 75, 162, 0.05) 100%)',
-      border: '1px solid rgba(102, 126, 234, 0.1)',
-      transition: 'all 0.3s ease'
-    }}>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-        <div style={{ flex: 1 }}>
-          <h3 style={{ 
-            fontSize: '20px', 
-            fontWeight: '600', 
-            color: '#2d3748',
-            marginBottom: '8px',
-            display: 'flex',
-            alignItems: 'center',
-            gap: '8px'
-          }}>
-            📚 {subject.name}
-          </h3>
-          <div style={{ 
-            display: 'flex', 
-            gap: '20px', 
-            marginBottom: '16px',
-            flexWrap: 'wrap'
-          }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-              <span style={{ color: '#667eea', fontSize: '16px' }}>👨‍🏫</span>
-              <span style={{ fontSize: '14px', color: '#4a5568' }}>
-                {subject.assistants_count || 0} Assistants
-              </span>
-            </div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-              <span style={{ color: '#38a169', fontSize: '16px' }}>👨‍🎓</span>
-              <span style={{ fontSize: '14px', color: '#4a5568' }}>
-                {subject.students_count || 0} Students
-              </span>
-            </div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-              <span style={{ color: '#ed8936', fontSize: '16px' }}>📅</span>
-              <span style={{ fontSize: '14px', color: '#4a5568' }}>
-                {subject.sessions_count || 0} Sessions
-              </span>
-            </div>
-          </div>
-          {subject.description && (
-            <p style={{ 
-              color: '#718096', 
-              fontSize: '14px',
-              marginBottom: '16px',
-              lineHeight: '1.5'
-            }}>
-              {subject.description}
-            </p>
-          )}
-          <div style={{ fontSize: '12px', color: '#a0aec0' }}>
-            Created {new Date(subject.created_at).toLocaleDateString()}
-          </div>
-        </div>
-        <div style={{ display: 'flex', gap: '8px', marginLeft: '16px' }}>
-          <Button
-            variant="secondary"
-            size="small"
-            onClick={() => onEdit(subject)}
-            icon="✏️"
-          >
-            Edit
-          </Button>
-          <Button
-            variant="danger"
-            size="small"
-            onClick={() => onDelete(subject.id)}
-            icon="🗑️"
-          >
-            Delete
-          </Button>
-        </div>
-      </div>
-    </div>
-  );
-};
-
-const CreateSubjectModal = ({ isOpen, onClose, onSuccess, editingSubject }) => {
-  const [formData, setFormData] = useState({
-    name: '',
-    description: ''
-  });
-  const [loading, setLoading] = useState(false);
+const SubjectForm = ({ subject = null, onSubmit, onCancel, loading = false }) => {
+  const [name, setName] = useState('');
   const [error, setError] = useState('');
 
   useEffect(() => {
-    if (editingSubject) {
-      setFormData({
-        name: editingSubject.name || '',
-        description: editingSubject.description || ''
-      });
-    } else {
-      setFormData({ name: '', description: '' });
+    if (subject) {
+      setName(subject.name || '');
     }
-  }, [editingSubject, isOpen]);
+  }, [subject]);
 
-  const handleSubmit = async (e) => {
+  const handleSubmit = (e) => {
     e.preventDefault();
-    setLoading(true);
-    setError('');
-
-    try {
-      if (editingSubject) {
-        await managerAPI.updateSubject(editingSubject.id, formData);
-      } else {
-        await managerAPI.createSubject(formData);
-      }
-      onSuccess();
-      onClose();
-    } catch (err) {
-      setError(err.response?.data?.detail || 'Failed to save subject');
-    } finally {
-      setLoading(false);
+    
+    if (!name.trim()) {
+      setError('Subject name is required');
+      return;
     }
+
+    if (name.trim().length < 2) {
+      setError('Subject name must be at least 2 characters');
+      return;
+    }
+
+    onSubmit({ name: name.trim() });
   };
 
-  if (!isOpen) return null;
-
   return (
-    <div className="modal-overlay" onClick={onClose}>
-      <div className="modal" onClick={(e) => e.stopPropagation()}>
-        <div className="modal-header">
-          <h3 className="modal-title">
-            {editingSubject ? '✏️ Edit Subject' : '➕ Create New Subject'}
-          </h3>
-          <button className="close-btn" onClick={onClose}>×</button>
+    <form onSubmit={handleSubmit}>
+      {error && (
+        <div className="alert alert-error" style={{ marginBottom: '20px' }}>
+          {error}
         </div>
-        <form onSubmit={handleSubmit}>
-          {error && <div className="alert alert-error">{error}</div>}
-          
-          <Input
-            label="Subject Name"
-            name="name"
-            value={formData.name}
-            onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-            placeholder="e.g., Advanced Mathematics, English Literature"
-            required
-            icon="📚"
-          />
+      )}
 
-          <div className="form-group">
-            <label className="form-label">Description</label>
-            <textarea
-              className="form-input"
-              name="description"
-              value={formData.description}
-              onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-              placeholder="Brief description of the subject..."
-              rows="4"
-              style={{ resize: 'vertical', minHeight: '100px' }}
-            />
+      <div className="form-group">
+        <label className="form-label">
+          Subject Name <span style={{ color: 'red' }}>*</span>
+        </label>
+        <input
+          type="text"
+          className="form-input"
+          value={name}
+          onChange={(e) => {
+            setName(e.target.value);
+            setError('');
+          }}
+          placeholder="Enter subject name"
+          required
+        />
+      </div>
+
+      <div style={{ display: 'flex', gap: '12px', marginTop: '24px' }}>
+        <button
+          type="submit"
+          className="btn btn-primary"
+          disabled={loading}
+        >
+          {loading ? (
+            <>
+              <div className="spinner" style={{ marginRight: '8px' }}></div>
+              {subject ? 'Updating...' : 'Creating...'}
+            </>
+          ) : (
+            subject ? 'Update Subject' : 'Create Subject'
+          )}
+        </button>
+        <button
+          type="button"
+          className="btn btn-secondary"
+          onClick={onCancel}
+          disabled={loading}
+        >
+          Cancel
+        </button>
+      </div>
+    </form>
+  );
+};
+
+const SubjectCard = ({ subject, onEdit, onDelete }) => {
+  return (
+    <div className="card" style={{ marginBottom: '16px' }}>
+      <div style={{ 
+        display: 'flex', 
+        justifyContent: 'space-between', 
+        alignItems: 'flex-start' 
+      }}>
+        <div style={{ flex: 1 }}>
+          <div style={{ 
+            display: 'flex', 
+            alignItems: 'center', 
+            gap: '12px',
+            marginBottom: '12px'
+          }}>
+            <div style={{ 
+              width: '40px', 
+              height: '40px', 
+              borderRadius: '8px',
+              background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              color: 'white'
+            }}>
+              <BookOpen size={20} />
+            </div>
+            <div>
+              <h3 style={{ 
+                margin: 0, 
+                fontSize: '18px', 
+                fontWeight: '600',
+                color: '#1e293b'
+              }}>
+                {subject.name}
+              </h3>
+              <div style={{ 
+                fontSize: '12px', 
+                color: '#6b7280',
+                marginTop: '2px'
+              }}>
+                Created: {subject.created_at}
+              </div>
+            </div>
           </div>
 
-          <div style={{ display: 'flex', gap: '12px', marginTop: '24px' }}>
-            <Button
-              type="submit"
-              variant="primary"
-              loading={loading}
-              style={{ flex: 1 }}
-            >
-              {editingSubject ? 'Update Subject' : 'Create Subject'}
-            </Button>
-            <Button
-              type="button"
-              variant="secondary"
-              onClick={onClose}
-              style={{ flex: 1 }}
-            >
-              Cancel
-            </Button>
+          <div style={{ 
+            display: 'grid', 
+            gridTemplateColumns: '1fr 1fr', 
+            gap: '16px',
+            marginBottom: '16px'
+          }}>
+            <div style={{ 
+              display: 'flex', 
+              alignItems: 'center', 
+              gap: '8px',
+              padding: '8px 12px',
+              background: '#f0f9ff',
+              borderRadius: '6px',
+              border: '1px solid #e0f2fe'
+            }}>
+              <Users size={16} style={{ color: '#0ea5e9' }} />
+              <div>
+                <div style={{ fontSize: '14px', fontWeight: '500', color: '#0c4a6e' }}>
+                  {subject.assistant_count}
+                </div>
+                <div style={{ fontSize: '12px', color: '#075985' }}>
+                  Assistants
+                </div>
+              </div>
+            </div>
+
+            <div style={{ 
+              display: 'flex', 
+              alignItems: 'center', 
+              gap: '8px',
+              padding: '8px 12px',
+              background: '#f0fdf4',
+              borderRadius: '6px',
+              border: '1px solid #dcfce7'
+            }}>
+              <GraduationCap size={16} style={{ color: '#22c55e' }} />
+              <div>
+                <div style={{ fontSize: '14px', fontWeight: '500', color: '#14532d' }}>
+                  {subject.student_count}
+                </div>
+                <div style={{ fontSize: '12px', color: '#166534' }}>
+                  Students
+                </div>
+              </div>
+            </div>
           </div>
-        </form>
+        </div>
+
+        <div style={{ display: 'flex', gap: '8px', marginLeft: '16px' }}>
+          <button
+            className="btn btn-primary btn-small"
+            onClick={() => onEdit(subject)}
+            title="Edit Subject"
+          >
+            <Edit size={14} />
+          </button>
+          <button
+            className="btn btn-danger btn-small"
+            onClick={() => onDelete(subject)}
+            title="Delete Subject"
+          >
+            <Trash2 size={14} />
+          </button>
+        </div>
       </div>
     </div>
   );
 };
 
-const Subjects = ({ currentUser }) => {
+const Subjects = () => {
   const [subjects, setSubjects] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
-  const [showModal, setShowModal] = useState(false);
-  const [editingSubject, setEditingSubject] = useState(null);
+  const [success, setSuccess] = useState('');
 
-  const fetchSubjects = async () => {
-    try {
-      setLoading(true);
-      const response = await managerAPI.getSubjects();
-      setSubjects(response.data);
-    } catch (err) {
-      setError('Failed to fetch subjects');
-      // Mock data for demo
-      setSubjects([
-        {
-          id: 1,
-          name: 'Advanced Mathematics',
-          description: 'Comprehensive mathematics course covering algebra, calculus, and geometry',
-          assistants_count: 3,
-          students_count: 15,
-          sessions_count: 45,
-          created_at: '2024-01-15T10:00:00Z'
-        },
-        {
-          id: 2,
-          name: 'English Literature',
-          description: 'English language and literature studies for all levels',
-          assistants_count: 2,
-          students_count: 12,
-          sessions_count: 38,
-          created_at: '2024-02-01T10:00:00Z'
-        },
-        {
-          id: 3,
-          name: 'Programming Fundamentals',
-          description: 'Introduction to programming concepts and software development',
-          assistants_count: 4,
-          students_count: 20,
-          sessions_count: 52,
-          created_at: '2024-01-20T10:00:00Z'
-        }
-      ]);
-    } finally {
-      setLoading(false);
-    }
-  };
+  // Modal states
+  const [showCreateModal, setShowCreateModal] = useState(false);
+  const [showEditModal, setShowEditModal] = useState(false);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+
+  // Selected subject for operations
+  const [selectedSubject, setSelectedSubject] = useState(null);
+  
+  // Form loading state
+  const [formLoading, setFormLoading] = useState(false);
 
   useEffect(() => {
     fetchSubjects();
   }, []);
 
-  const handleCreate = () => {
-    setEditingSubject(null);
-    setShowModal(true);
-  };
-
-  const handleEdit = (subject) => {
-    setEditingSubject(subject);
-    setShowModal(true);
-  };
-
-  const handleDelete = async (subjectId) => {
-    if (!window.confirm('Are you sure you want to delete this subject? This action cannot be undone.')) {
-      return;
-    }
-
+  const fetchSubjects = async () => {
     try {
-      await managerAPI.deleteSubject(subjectId);
-      fetchSubjects();
+      setLoading(true);
+      setError('');
+      
+      const response = await managerAPI.getSubjects();
+      setSubjects(response.data);
     } catch (err) {
-      setError('Failed to delete subject');
+      setError(err.response?.data?.detail || 'Failed to fetch subjects');
+      console.error('Error fetching subjects:', err);
+    } finally {
+      setLoading(false);
     }
   };
 
-  const handleSuccess = () => {
-    fetchSubjects();
+  const showSuccessMessage = (message) => {
+    setSuccess(message);
+    setTimeout(() => setSuccess(''), 5000);
+  };
+
+  const showErrorMessage = (message) => {
+    setError(message);
+    setTimeout(() => setError(''), 5000);
+  };
+
+  // Create subject
+  const handleCreate = async (formData) => {
+    try {
+      setFormLoading(true);
+      await managerAPI.createSubject(formData);
+      await fetchSubjects();
+      setShowCreateModal(false);
+      showSuccessMessage('Subject created successfully!');
+    } catch (err) {
+      showErrorMessage(err.response?.data?.detail || 'Failed to create subject');
+    } finally {
+      setFormLoading(false);
+    }
+  };
+
+  // Update subject
+  const handleUpdate = async (formData) => {
+    try {
+      setFormLoading(true);
+      await managerAPI.updateSubject(selectedSubject.id, formData);
+      await fetchSubjects();
+      setShowEditModal(false);
+      setSelectedSubject(null);
+      showSuccessMessage('Subject updated successfully!');
+    } catch (err) {
+      showErrorMessage(err.response?.data?.detail || 'Failed to update subject');
+    } finally {
+      setFormLoading(false);
+    }
+  };
+
+  // Delete subject
+  const handleDelete = async () => {
+    try {
+      await managerAPI.deleteSubject(selectedSubject.id);
+      await fetchSubjects();
+      setSelectedSubject(null);
+      showSuccessMessage('Subject deleted successfully!');
+    } catch (err) {
+      showErrorMessage(err.response?.data?.detail || 'Failed to delete subject');
+    }
+  };
+
+  // Modal handlers
+  const openCreateModal = () => {
+    setSelectedSubject(null);
+    setShowCreateModal(true);
+  };
+
+  const openEditModal = (subject) => {
+    setSelectedSubject(subject);
+    setShowEditModal(true);
+  };
+
+  const openDeleteModal = (subject) => {
+    setSelectedSubject(subject);
+    setShowDeleteModal(true);
+  };
+
+  const closeAllModals = () => {
+    setShowCreateModal(false);
+    setShowEditModal(false);
+    setShowDeleteModal(false);
+    setSelectedSubject(null);
   };
 
   if (loading) {
     return (
-      <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '60vh' }}>
-        <div className="loading-spinner"></div>
+      <div className="loading">
+        <div className="spinner"></div>
+        Loading subjects...
       </div>
     );
   }
@@ -276,94 +321,168 @@ const Subjects = ({ currentUser }) => {
   return (
     <div>
       {/* Header */}
-      <div style={{ 
-        display: 'flex', 
-        justifyContent: 'space-between', 
-        alignItems: 'center', 
-        marginBottom: '30px' 
-      }}>
-        <div>
-          <h1 style={{ 
-            fontSize: '28px', 
-            fontWeight: '700', 
-            color: '#2d3748',
-            marginBottom: '8px'
-          }}>
-            📚 Subjects Management
-          </h1>
-          <p style={{ color: '#718096', fontSize: '16px' }}>
-            Manage subjects offered in your learning center
-          </p>
-        </div>
-        <Button
-          variant="primary"
-          onClick={handleCreate}
-          icon="➕"
-        >
+      <div className="card-header" style={{ marginBottom: '20px' }}>
+        <h2 className="card-title">Subjects Management</h2>
+        <button className="btn btn-primary" onClick={openCreateModal}>
+          <Plus size={16} style={{ marginRight: '8px' }} />
           Add New Subject
-        </Button>
+        </button>
       </div>
 
-      {error && <div className="alert alert-warning">{error} (Showing demo data)</div>}
+      {/* Alerts */}
+      {error && (
+        <div className="alert alert-error" style={{ marginBottom: '20px' }}>
+          {error}
+        </div>
+      )}
 
-      {/* Stats Overview */}
-      <div className="stats-grid" style={{ marginBottom: '30px' }}>
-        <div className="stat-card">
-          <div className="stat-number">{subjects.length}</div>
-          <div className="stat-label">Total Subjects</div>
+      {success && (
+        <div className="alert alert-success" style={{ marginBottom: '20px' }}>
+          {success}
         </div>
-        <div className="stat-card">
-          <div className="stat-number">
-            {subjects.reduce((sum, s) => sum + (s.assistants_count || 0), 0)}
-          </div>
-          <div className="stat-label">Total Assistants</div>
-        </div>
-        <div className="stat-card">
-          <div className="stat-number">
-            {subjects.reduce((sum, s) => sum + (s.students_count || 0), 0)}
-          </div>
-          <div className="stat-label">Total Students</div>
-        </div>
-        <div className="stat-card">
-          <div className="stat-number">
-            {subjects.reduce((sum, s) => sum + (s.sessions_count || 0), 0)}
-          </div>
-          <div className="stat-label">Total Sessions</div>
-        </div>
-      </div>
+      )}
 
       {/* Subjects Grid */}
       {subjects.length === 0 ? (
-        <div className="card" style={{ textAlign: 'center', padding: '60px 20px' }}>
-          <div style={{ fontSize: '64px', marginBottom: '20px' }}>📚</div>
-          <h3 style={{ color: '#4a5568', marginBottom: '12px' }}>No subjects yet</h3>
-          <p style={{ color: '#718096', marginBottom: '24px' }}>
-            Create your first subject to start organizing your learning center
-          </p>
-          <Button variant="primary" onClick={handleCreate} icon="➕">
-            Create First Subject
-          </Button>
+        <div className="card">
+          <div style={{ 
+            textAlign: 'center', 
+            padding: '60px 20px', 
+            color: '#6b7280' 
+          }}>
+            <BookOpen size={48} style={{ 
+              margin: '0 auto 16px', 
+              color: '#d1d5db' 
+            }} />
+            <h3 style={{ 
+              margin: '0 0 8px', 
+              color: '#374151',
+              fontSize: '18px',
+              fontWeight: '500'
+            }}>
+              No subjects found
+            </h3>
+            <p style={{ margin: '0 0 24px' }}>
+              Get started by creating your first subject.
+            </p>
+            <button className="btn btn-primary" onClick={openCreateModal}>
+              <Plus size={16} style={{ marginRight: '8px' }} />
+              Create First Subject
+            </button>
+          </div>
         </div>
       ) : (
-        <div style={{ display: 'grid', gap: '20px' }}>
+        <div style={{ 
+          display: 'grid', 
+          gridTemplateColumns: 'repeat(auto-fill, minmax(400px, 1fr))', 
+          gap: '20px' 
+        }}>
           {subjects.map((subject) => (
             <SubjectCard
               key={subject.id}
               subject={subject}
-              onEdit={handleEdit}
-              onDelete={handleDelete}
+              onEdit={openEditModal}
+              onDelete={openDeleteModal}
             />
           ))}
         </div>
       )}
 
-      {/* Create/Edit Modal */}
-      <CreateSubjectModal
-        isOpen={showModal}
-        onClose={() => setShowModal(false)}
-        onSuccess={handleSuccess}
-        editingSubject={editingSubject}
+      {/* Create Modal */}
+      <Modal
+        isOpen={showCreateModal}
+        onClose={closeAllModals}
+        title="Create New Subject"
+        size="small"
+      >
+        <SubjectForm
+          onSubmit={handleCreate}
+          onCancel={closeAllModals}
+          loading={formLoading}
+        />
+      </Modal>
+
+      {/* Edit Modal */}
+      <Modal
+        isOpen={showEditModal}
+        onClose={closeAllModals}
+        title="Edit Subject"
+        size="small"
+      >
+        <SubjectForm
+          subject={selectedSubject}
+          onSubmit={handleUpdate}
+          onCancel={closeAllModals}
+          loading={formLoading}
+        />
+      </Modal>
+
+      {/* Delete Confirmation Modal */}
+      <ConfirmModal
+        isOpen={showDeleteModal}
+        onClose={closeAllModals}
+        onConfirm={handleDelete}
+        title="Delete Subject"
+        message={
+          selectedSubject?.assistant_count > 0 || selectedSubject?.student_count > 0
+            ? `Cannot delete "${selectedSubject?.name}" because it has ${selectedSubject?.assistant_count} assistants and ${selectedSubject?.student_count} students assigned to it. Please reassign them first.`
+            : `Are you sure you want to delete "${selectedSubject?.name}"? This action cannot be undone.`
+        }
+        confirmText="Delete"
+        type="danger"
       />
+
+      {/* Stats Summary */}
+      <div className="card" style={{ marginTop: '30px' }}>
+        <h3 className="card-title" style={{ marginBottom: '20px' }}>
+          Subjects Summary
+        </h3>
+        <div style={{ 
+          display: 'grid', 
+          gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))', 
+          gap: '20px' 
+        }}>
+          <div style={{ textAlign: 'center' }}>
+            <div style={{ 
+              fontSize: '2rem', 
+              fontWeight: '700', 
+              color: '#667eea',
+              marginBottom: '4px'
+            }}>
+              {subjects.length}
+            </div>
+            <div style={{ fontSize: '14px', color: '#6b7280' }}>
+              Total Subjects
+            </div>
+          </div>
+          <div style={{ textAlign: 'center' }}>
+            <div style={{ 
+              fontSize: '2rem', 
+              fontWeight: '700', 
+              color: '#10b981',
+              marginBottom: '4px'
+            }}>
+              {subjects.reduce((sum, s) => sum + s.assistant_count, 0)}
+            </div>
+            <div style={{ fontSize: '14px', color: '#6b7280' }}>
+              Total Assistants
+            </div>
+          </div>
+          <div style={{ textAlign: 'center' }}>
+            <div style={{ 
+              fontSize: '2rem', 
+              fontWeight: '700', 
+              color: '#f59e0b',
+              marginBottom: '4px'
+            }}>
+              {subjects.reduce((sum, s) => sum + s.student_count, 0)}
+            </div>
+            <div style={{ fontSize: '14px', color: '#6b7280' }}>
+              Total Students
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
   );
 };

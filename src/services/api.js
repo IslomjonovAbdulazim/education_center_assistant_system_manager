@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-const API_BASE_URL = process.env.REACT_APP_API_URL || 'https://islomjonovabdulazim-learning-center-assistant-system-99fa.twc1.net';
+const API_BASE_URL = 'https://islomjonovabdulazim-learning-center-assistant-system-99fa.twc1.net';
 
 const api = axios.create({
   baseURL: API_BASE_URL,
@@ -25,7 +25,7 @@ api.interceptors.response.use(
     if (error.response?.status === 401) {
       localStorage.removeItem('manager_token');
       localStorage.removeItem('manager_user');
-      window.location.href = '/';
+      window.location.href = '/login';
     }
     return Promise.reject(error);
   }
@@ -34,42 +34,27 @@ api.interceptors.response.use(
 // Auth API
 export const authAPI = {
   login: (data) => api.post('/auth/login', data),
+  changePassword: (data) => api.put('/auth/change-password', data),
 };
 
 // Manager API
 export const managerAPI = {
-  // Dashboard & Stats
-  getStats: () => api.get('/manager/stats'),
-  getDashboardData: () => api.get('/manager/dashboard'),
+  // Users Management
+  getUsers: (role) => api.get(`/manager/users?role=${role}`),
+  getUserDetail: (userId) => api.get(`/manager/users/${userId}`),
+  createUser: (data) => api.post('/manager/users', data),
+  updateUser: (userId, data) => api.put(`/manager/users/${userId}`, data),
+  deleteUser: (userId) => api.delete(`/manager/users/${userId}`),
+  changeUserPassword: (userId, data) => api.put(`/manager/users/${userId}/change-password`, data),
   
   // Subjects Management
   getSubjects: () => api.get('/manager/subjects'),
   createSubject: (data) => api.post('/manager/subjects', data),
-  updateSubject: (id, data) => api.put(`/manager/subjects/${id}`, data),
-  deleteSubject: (id) => api.delete(`/manager/subjects/${id}`),
+  updateSubject: (subjectId, data) => api.put(`/manager/subjects/${subjectId}`, data),
+  deleteSubject: (subjectId) => api.delete(`/manager/subjects/${subjectId}`),
   
-  // Users Management
-  getUsers: (role) => api.get(`/manager/users?role=${role}`),
-  createUser: (data) => api.post('/manager/users', data),
-  updateUser: (id, data) => api.put(`/manager/users/${id}`, data),
-  deleteUser: (id) => api.delete(`/manager/users/${id}`),
-  
-  // Sessions Management
-  getSessions: (params = {}) => api.get('/manager/sessions', { params }),
-  getSessionDetails: (id) => api.get(`/manager/sessions/${id}`),
-  
-  // Reports & Analytics
-  getAttendanceReport: (params) => api.get('/manager/reports/attendance', { params }),
-  getPerformanceReport: (params) => api.get('/manager/reports/performance', { params }),
-  getSubjectAnalytics: () => api.get('/manager/analytics/subjects'),
-  getAssistantAnalytics: () => api.get('/manager/analytics/assistants'),
-  getStudentAnalytics: () => api.get('/manager/analytics/students'),
-  
-  // Advanced Analytics
-  getMonthlyTrends: () => api.get('/manager/analytics/monthly-trends'),
-  getHourlyDistribution: () => api.get('/manager/analytics/hourly-distribution'),
-  getRatingAnalytics: () => api.get('/manager/analytics/ratings'),
-  getCapacityAnalytics: () => api.get('/manager/analytics/capacity'),
+  // Stats
+  getStats: () => api.get('/manager/stats'),
 };
 
 export default api;

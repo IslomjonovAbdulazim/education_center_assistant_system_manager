@@ -8,8 +8,3 @@ root.render(
     <App />
   </React.StrictMode>
 );
-
-// Hide loading screen when React renders
-setTimeout(() => {
-  document.body.classList.add('loaded');
-}, 200);
