@@ -67,6 +67,7 @@ const Students = () => {
     try {
       setFormLoading(true);
       const studentData = { ...formData, role: 'student' };
+      
       await managerAPI.createUser(studentData);
       await fetchData();
       setShowCreateModal(false);
@@ -82,7 +83,9 @@ const Students = () => {
   const handleUpdate = async (formData) => {
     try {
       setFormLoading(true);
-      await managerAPI.updateUser(selectedUser.id, formData);
+      const updateData = { ...formData, role: 'student' };
+      
+      await managerAPI.updateUser(selectedUser.id, updateData);
       await fetchData();
       setShowEditModal(false);
       setSelectedUser(null);
@@ -177,6 +180,8 @@ const Students = () => {
         </button>
       </div>
 
+
+
       {/* Alerts */}
       {error && (
         <div className="alert alert-error" style={{ marginBottom: '20px' }}>
@@ -199,6 +204,7 @@ const Students = () => {
           onEdit={openEditModal}
           onDelete={openDeleteModal}
           onChangePassword={openPasswordModal}
+          userType="student"
         />
       </div>
 
@@ -209,12 +215,12 @@ const Students = () => {
         title={t('createNewStudent')}
       >
         <UserForm
-          user={{ role: 'student' }}
           subjects={subjects}
           onSubmit={handleCreate}
           onCancel={closeAllModals}
           loading={formLoading}
           mode="create"
+          userRole="student"
         />
       </Modal>
 
@@ -231,6 +237,7 @@ const Students = () => {
           onCancel={closeAllModals}
           loading={formLoading}
           mode="edit"
+          userRole="student"
         />
       </Modal>
 

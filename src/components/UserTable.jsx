@@ -9,7 +9,8 @@ const UserTable = ({
   onEdit, 
   onDelete, 
   onChangePassword,
-  loading = false 
+  loading = false,
+  userType = 'assistant' // 'assistant' or 'student'
 }) => {
   const [searchTerm, setSearchTerm] = useState('');
 
@@ -18,6 +19,10 @@ const UserTable = ({
     user.phone.includes(searchTerm) ||
     (user.subject_field && user.subject_field.toLowerCase().includes(searchTerm.toLowerCase()))
   );
+
+  const getRoleLabel = () => {
+    return userType === 'assistant' ? 'Yordamchi' : 'Talaba';
+  };
 
   if (loading) {
     return (
@@ -87,7 +92,7 @@ const UserTable = ({
                       <div>
                         <div style={{ fontWeight: '500' }}>{user.fullname}</div>
                         <div style={{ fontSize: '12px', color: '#6b7280' }}>
-                          {user.role === 'assistant' ? 'Yordamchi' : 'Talaba'}
+                          {getRoleLabel()}
                         </div>
                       </div>
                     </div>

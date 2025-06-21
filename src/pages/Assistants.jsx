@@ -67,7 +67,9 @@ const Assistants = () => {
   const handleCreate = async (formData) => {
     try {
       setFormLoading(true);
-      await managerAPI.createUser(formData);
+      const assistantData = { ...formData, role: 'assistant' };
+      
+      await managerAPI.createUser(assistantData);
       await fetchData();
       setShowCreateModal(false);
       showSuccessMessage(t('assistantCreated'));
@@ -82,7 +84,9 @@ const Assistants = () => {
   const handleUpdate = async (formData) => {
     try {
       setFormLoading(true);
-      await managerAPI.updateUser(selectedUser.id, formData);
+      const updateData = { ...formData, role: 'assistant' };
+      
+      await managerAPI.updateUser(selectedUser.id, updateData);
       await fetchData();
       setShowEditModal(false);
       setSelectedUser(null);
@@ -177,6 +181,8 @@ const Assistants = () => {
         </button>
       </div>
 
+
+
       {/* Alerts */}
       {error && (
         <div className="alert alert-error" style={{ marginBottom: '20px' }}>
@@ -199,6 +205,7 @@ const Assistants = () => {
           onEdit={openEditModal}
           onDelete={openDeleteModal}
           onChangePassword={openPasswordModal}
+          userType="assistant"
         />
       </div>
 
@@ -214,6 +221,7 @@ const Assistants = () => {
           onCancel={closeAllModals}
           loading={formLoading}
           mode="create"
+          userRole="assistant"
         />
       </Modal>
 
@@ -230,6 +238,7 @@ const Assistants = () => {
           onCancel={closeAllModals}
           loading={formLoading}
           mode="edit"
+          userRole="assistant"
         />
       </Modal>
 

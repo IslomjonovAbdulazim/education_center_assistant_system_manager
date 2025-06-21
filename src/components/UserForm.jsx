@@ -8,13 +8,13 @@ const UserForm = ({
   onSubmit, 
   onCancel, 
   loading = false,
-  mode = 'create'
+  mode = 'create',
+  userRole = 'assistant' // Auto-determined based on current section
 }) => {
   const [formData, setFormData] = useState({
     fullname: '',
     phone: '+998',
     password: '',
-    role: 'assistant',
     subject_field: ''
   });
   const [errors, setErrors] = useState({});
@@ -25,7 +25,6 @@ const UserForm = ({
         fullname: user.fullname || '',
         phone: user.phone || '+998',
         password: '',
-        role: user.role || 'assistant',
         subject_field: user.subject_field || ''
       });
     }
@@ -61,10 +60,6 @@ const UserForm = ({
       newErrors.password = t('passwordValidation');
     }
 
-    if (!formData.role) {
-      newErrors.role = 'Rol kiritish majburiy';
-    }
-
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
@@ -76,7 +71,10 @@ const UserForm = ({
       return;
     }
 
-    const submitData = { ...formData };
+    const submitData = { 
+      ...formData,
+      role: userRole // Automatically set role
+    };
     
     if (mode === 'edit' && !submitData.password) {
       delete submitData.password;
@@ -85,8 +83,25 @@ const UserForm = ({
     onSubmit(submitData);
   };
 
+  const getRoleLabel = () => {
+    return userRole === 'assistant' ? 'Yordamchi' : 'Talaba';
+  };
+
   return (
     <form onSubmit={handleSubmit}>
+      {/* Show current role as info */}
+      <div style={{ 
+        marginBottom: '20px', 
+        padding: '12px', 
+        background: '#f0f9ff', 
+        borderRadius: '8px',
+        border: '1px solid #e0f2fe'
+      }}>
+        <div style={{ fontSize: '14px', color: '#0369a1' }}>
+          <strong>Yaratilayotgan foydalanuvchi turi:</strong> {getRoleLabel()}
+        </div>
+      </div>
+
       {/* Full Name */}
       <div className="form-group">
         <label className="form-label">
@@ -151,28 +166,6 @@ const UserForm = ({
         )}
       </div>
 
-      {/* Role */}
-      <div className="form-group">
-        <label className="form-label">
-          Rol <span style={{ color: 'red' }}>*</span>
-        </label>
-        <select
-          name="role"
-          className={`form-select ${errors.role ? 'error' : ''}`}
-          value={formData.role}
-          onChange={handleChange}
-          required
-        >
-          <option value="assistant">Yordamchi</option>
-          <option value="student">Talaba</option>
-        </select>
-        {errors.role && (
-          <div style={{ color: '#dc2626', fontSize: '12px', marginTop: '4px' }}>
-            {errors.role}
-          </div>
-        )}
-      </div>
-
       {/* Subject Field */}
       <div className="form-group">
         <label className="form-label">Fan sohasi</label>
@@ -215,7 +208,7 @@ const UserForm = ({
               {mode === 'create' ? t('creating') : t('updating')}
             </>
           ) : (
-            mode === 'create' ? 'Foydalanuvchi yaratish' : 'Foydalanuvchini yangilash'
+            mode === 'create' ? `${getRoleLabel()} yaratish` : `${getRoleLabel()}ni yangilash`
           )}
         </button>
         <button
