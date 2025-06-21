@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { authService } from '../services/auth';
 import { validatePhone } from '../types';
+import { t } from '../types/translations';
 
 const Login = ({ onLogin }) => {
   const [formData, setFormData] = useState({
@@ -11,7 +12,6 @@ const Login = ({ onLogin }) => {
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
 
-  // Check if already authenticated
   useEffect(() => {
     if (authService.isAuthenticated()) {
       onLogin();
@@ -25,7 +25,6 @@ const Login = ({ onLogin }) => {
       [name]: value
     }));
     
-    // Clear error when user starts typing
     if (error) {
       setError('');
     }
@@ -37,27 +36,24 @@ const Login = ({ onLogin }) => {
     setError('');
 
     try {
-      // Validation
       if (!validatePhone(formData.phone)) {
-        throw new Error('Phone number must be in format +998XXXXXXXXX');
+        throw new Error(t('phoneValidation'));
       }
 
       if (!formData.password) {
-        throw new Error('Password is required');
+        throw new Error('Parol kiritish majburiy');
       }
 
       if (!formData.learning_center_id) {
-        throw new Error('Learning Center ID is required');
+        throw new Error('Ta\'lim markaz ID kiritish majburiy');
       }
 
-      // Attempt login
       const { token, user } = await authService.login(
         formData.phone,
         formData.password,
         parseInt(formData.learning_center_id)
       );
 
-      // Success - call parent callback
       onLogin(token, user);
 
     } catch (err) {
@@ -70,7 +66,7 @@ const Login = ({ onLogin }) => {
   return (
     <div className="login-container">
       <div className="login-card">
-        <h1>Manager Login</h1>
+        <h1>{t('loginTitle')}</h1>
         
         {error && (
           <div className="alert alert-error">
@@ -80,7 +76,7 @@ const Login = ({ onLogin }) => {
 
         <form onSubmit={handleSubmit}>
           <div className="form-group">
-            <label className="form-label">Phone Number</label>
+            <label className="form-label">{t('phoneLabel')}</label>
             <input
               type="tel"
               name="phone"
@@ -93,31 +89,31 @@ const Login = ({ onLogin }) => {
           </div>
 
           <div className="form-group">
-            <label className="form-label">Password</label>
+            <label className="form-label">{t('passwordLabel')}</label>
             <input
               type="password"
               name="password"
               className="form-input"
               value={formData.password}
               onChange={handleChange}
-              placeholder="Enter your password"
+              placeholder="Parolingizni kiriting"
               required
             />
           </div>
 
           <div className="form-group">
-            <label className="form-label">Learning Center ID</label>
+            <label className="form-label">{t('centerIdLabel')}</label>
             <input
               type="number"
               name="learning_center_id"
               className="form-input"
               value={formData.learning_center_id}
               onChange={handleChange}
-              placeholder="Enter learning center ID"
+              placeholder="Ta'lim markaz ID kiriting"
               required
             />
             <div style={{ fontSize: '12px', color: '#6b7280', marginTop: '4px' }}>
-              Contact your administrator if you don't know your center ID
+              Markaz ID bilmasangiz administrator bilan bog'laning
             </div>
           </div>
 
@@ -130,10 +126,10 @@ const Login = ({ onLogin }) => {
             {loading ? (
               <>
                 <div className="spinner" style={{ marginRight: '8px' }}></div>
-                Logging in...
+                {t('loggingIn')}
               </>
             ) : (
-              'Login'
+              t('loginButton')
             )}
           </button>
         </form>
@@ -146,10 +142,10 @@ const Login = ({ onLogin }) => {
           fontSize: '14px',
           color: '#6b7280'
         }}>
-          <strong>Demo Credentials:</strong><br />
-          Phone: +998901234567<br />
-          Password: demo123<br />
-          Center ID: 1
+          <strong>{t('demoCredentials')}</strong><br />
+          {t('demoPhone')}<br />
+          {t('demoPassword')}<br />
+          {t('demoCenterId')}
         </div>
       </div>
     </div>

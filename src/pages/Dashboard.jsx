@@ -9,6 +9,7 @@ import {
 } from '../components/Charts';
 import { Users, GraduationCap, BookOpen, Star } from 'lucide-react';
 import { createStats } from '../types';
+import { t } from '../types/translations';
 
 const Dashboard = () => {
   const [stats, setStats] = useState(createStats());
@@ -26,7 +27,7 @@ const Dashboard = () => {
       const response = await managerAPI.getStats();
       setStats(createStats(response.data));
     } catch (err) {
-      setError(err.response?.data?.detail || 'Failed to fetch statistics');
+      setError('Statistikalarni yuklashda xatolik yuz berdi');
       console.error('Error fetching stats:', err);
     } finally {
       setLoading(false);
@@ -37,7 +38,7 @@ const Dashboard = () => {
     return (
       <div className="loading">
         <div className="spinner"></div>
-        Loading dashboard...
+        Bosh sahifa yuklanmoqda...
       </div>
     );
   }
@@ -50,7 +51,7 @@ const Dashboard = () => {
         </div>
         <div style={{ marginTop: '20px' }}>
           <button className="btn btn-primary" onClick={fetchStats}>
-            Try Again
+            {t('tryAgain')}
           </button>
         </div>
       </div>
@@ -62,25 +63,25 @@ const Dashboard = () => {
       {/* Stats Overview */}
       <div className="stats-grid">
         <StatsCard
-          title="Total Assistants"
+          title={t('totalAssistants')}
           value={stats.overview.total_assistants}
           variant="primary"
           icon={<Users size={24} />}
         />
         <StatsCard
-          title="Total Students"
+          title={t('totalStudents')}
           value={stats.overview.total_students}
           variant="success"
           icon={<GraduationCap size={24} />}
         />
         <StatsCard
-          title="Total Sessions"
+          title={t('totalSessions')}
           value={stats.overview.total_sessions}
           variant="warning"
           icon={<BookOpen size={24} />}
         />
         <StatsCard
-          title="Average Rating"
+          title={t('averageRating')}
           value={stats.overview.avg_rating.toFixed(1)}
           variant="info"
           icon={<Star size={24} />}
@@ -90,17 +91,17 @@ const Dashboard = () => {
       {/* Additional Stats */}
       <div className="stats-grid" style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))' }}>
         <StatsCard
-          title="Sessions This Month"
+          title={t('sessionsThisMonth')}
           value={stats.overview.sessions_this_month}
           variant="primary"
         />
         <StatsCard
-          title="Total Subjects"
+          title={t('totalSubjects')}
           value={stats.overview.total_subjects}
           variant="success"
         />
         <StatsCard
-          title="Attendance Rate"
+          title={t('attendanceRate')}
           value={`${stats.overview.attendance_rate}%`}
           variant="info"
         />
@@ -110,7 +111,7 @@ const Dashboard = () => {
       <div className="charts-grid">
         <div className="chart-container">
           <h3 className="card-title" style={{ marginBottom: '20px' }}>
-            Monthly Session Trends
+            {t('monthlyTrends')}
           </h3>
           {stats.monthly_trends.length > 0 ? (
             <MonthlyTrendsChart data={stats.monthly_trends} />
@@ -120,14 +121,14 @@ const Dashboard = () => {
               padding: '40px', 
               color: '#6b7280' 
             }}>
-              No trend data available
+              {t('noDataAvailable')}
             </div>
           )}
         </div>
 
         <div className="chart-container">
           <h3 className="card-title" style={{ marginBottom: '20px' }}>
-            Subject Popularity
+            {t('subjectPopularity')}
           </h3>
           {stats.subject_popularity.length > 0 ? (
             <SubjectPopularityChart data={stats.subject_popularity} />
@@ -137,7 +138,7 @@ const Dashboard = () => {
               padding: '40px', 
               color: '#6b7280' 
             }}>
-              No subject data available
+              {t('noDataAvailable')}
             </div>
           )}
         </div>
@@ -146,7 +147,7 @@ const Dashboard = () => {
       <div className="charts-grid">
         <div className="chart-container">
           <h3 className="card-title" style={{ marginBottom: '20px' }}>
-            Peak Hours Analysis
+            {t('peakHours')}
           </h3>
           {stats.peak_hours.length > 0 ? (
             <PeakHoursChart data={stats.peak_hours} />
@@ -156,14 +157,14 @@ const Dashboard = () => {
               padding: '40px', 
               color: '#6b7280' 
             }}>
-              No peak hours data available
+              {t('noDataAvailable')}
             </div>
           )}
         </div>
 
         <div className="chart-container">
           <h3 className="card-title" style={{ marginBottom: '20px' }}>
-            Top Performing Assistants
+            {t('topAssistants')}
           </h3>
           <TopAssistantsList data={stats.top_assistants} />
         </div>
@@ -172,7 +173,7 @@ const Dashboard = () => {
       {/* Quick Actions */}
       <div className="card">
         <div className="card-header">
-          <h3 className="card-title">Quick Actions</h3>
+          <h3 className="card-title">{t('quickActions')}</h3>
         </div>
         <div style={{ 
           display: 'grid', 
@@ -190,10 +191,28 @@ const Dashboard = () => {
             }}
           >
             <div style={{ fontWeight: '500', marginBottom: '4px' }}>
-              Manage Assistants
+              {t('manageAssistants')}
             </div>
             <div style={{ fontSize: '12px', color: '#6b7280' }}>
-              Add, edit, or remove assistant accounts
+              Yordamchi hisoblarini qo'shish, tahrirlash yoki o'chirish
+            </div>
+          </button>
+
+          <button 
+            className="btn btn-primary"
+            style={{ 
+              padding: '16px 20px', 
+              textAlign: 'left',
+              border: '1px solid #e5e7eb',
+              background: 'white',
+              color: '#374171'
+            }}
+          >
+            <div style={{ fontWeight: '500', marginBottom: '4px' }}>
+              {t('manageStudents')}
+            </div>
+            <div style={{ fontSize: '12px', color: '#6b7280' }}>
+              Talaba hisoblarini qo'shish, tahrirlash yoki o'chirish
             </div>
           </button>
 
@@ -208,10 +227,10 @@ const Dashboard = () => {
             }}
           >
             <div style={{ fontWeight: '500', marginBottom: '4px' }}>
-              Manage Students
+              {t('manageSubjects')}
             </div>
             <div style={{ fontSize: '12px', color: '#6b7280' }}>
-              Add, edit, or remove student accounts
+              Fanlarni qo'shish, tahrirlash yoki o'chirish
             </div>
           </button>
 
@@ -226,28 +245,10 @@ const Dashboard = () => {
             }}
           >
             <div style={{ fontWeight: '500', marginBottom: '4px' }}>
-              Manage Subjects
+              {t('viewReports')}
             </div>
             <div style={{ fontSize: '12px', color: '#6b7280' }}>
-              Add, edit, or remove subjects
-            </div>
-          </button>
-
-          <button 
-            className="btn btn-primary"
-            style={{ 
-              padding: '16px 20px', 
-              textAlign: 'left',
-              border: '1px solid #e5e7eb',
-              background: 'white',
-              color: '#374151'
-            }}
-          >
-            <div style={{ fontWeight: '500', marginBottom: '4px' }}>
-              View Reports
-            </div>
-            <div style={{ fontSize: '12px', color: '#6b7280' }}>
-              Generate detailed reports
+              Batafsil hisobotlar yaratish
             </div>
           </button>
         </div>
@@ -260,7 +261,7 @@ const Dashboard = () => {
           onClick={fetchStats}
           disabled={loading}
         >
-          {loading ? 'Refreshing...' : 'Refresh Data'}
+          {loading ? t('refreshing') : t('refreshData')}
         </button>
       </div>
     </div>

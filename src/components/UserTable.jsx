@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Eye, Edit, Trash2, Key } from 'lucide-react';
 import { generateStars, getInitials } from '../types';
+import { t } from '../types/translations';
 
 const UserTable = ({ 
   users, 
@@ -22,7 +23,7 @@ const UserTable = ({
     return (
       <div className="loading">
         <div className="spinner"></div>
-        Loading users...
+        Foydalanuvchilar yuklanmoqda...
       </div>
     );
   }
@@ -34,7 +35,7 @@ const UserTable = ({
         <input
           type="text"
           className="search-input"
-          placeholder="Search users..."
+          placeholder="Foydalanuvchilarni qidirish..."
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
         />
@@ -45,20 +46,20 @@ const UserTable = ({
         <table className="table">
           <thead>
             <tr>
-              <th>User</th>
-              <th>Phone</th>
-              <th>Subject</th>
-              <th>Rating</th>
-              <th>Sessions</th>
-              <th>Created</th>
-              <th>Actions</th>
+              <th>Foydalanuvchi</th>
+              <th>Telefon</th>
+              <th>Fan</th>
+              <th>Baho</th>
+              <th>Darslar</th>
+              <th>Yaratilgan</th>
+              <th>Amallar</th>
             </tr>
           </thead>
           <tbody>
             {filteredUsers.length === 0 ? (
               <tr>
                 <td colSpan="7" style={{ textAlign: 'center', padding: '40px', color: '#6b7280' }}>
-                  {searchTerm ? 'No users found matching your search.' : 'No users found.'}
+                  {searchTerm ? 'Qidirishga mos foydalanuvchilar topilmadi.' : 'Foydalanuvchilar topilmadi.'}
                 </td>
               </tr>
             ) : (
@@ -86,13 +87,13 @@ const UserTable = ({
                       <div>
                         <div style={{ fontWeight: '500' }}>{user.fullname}</div>
                         <div style={{ fontSize: '12px', color: '#6b7280' }}>
-                          {user.role === 'assistant' ? 'Assistant' : 'Student'}
+                          {user.role === 'assistant' ? 'Yordamchi' : 'Talaba'}
                         </div>
                       </div>
                     </div>
                   </td>
                   <td>{user.phone}</td>
-                  <td>{user.subject_field || 'N/A'}</td>
+                  <td>{user.subject_field || 'Belgilanmagan'}</td>
                   <td>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                       <div className="rating-stars">
@@ -104,27 +105,27 @@ const UserTable = ({
                     </div>
                   </td>
                   <td>{user.total_sessions || 0}</td>
-                  <td>{user.created_at || 'N/A'}</td>
+                  <td>{user.created_at || 'Noma\'lum'}</td>
                   <td>
                     <div className="action-buttons">
                       <button
                         className="btn btn-secondary btn-small"
                         onClick={() => onView(user)}
-                        title="View Details"
+                        title="Tafsilotlarni ko'rish"
                       >
                         <Eye size={14} />
                       </button>
                       <button
                         className="btn btn-primary btn-small"
                         onClick={() => onEdit(user)}
-                        title="Edit User"
+                        title="Foydalanuvchini tahrirlash"
                       >
                         <Edit size={14} />
                       </button>
                       <button
                         className="btn btn-warning btn-small"
                         onClick={() => onChangePassword(user)}
-                        title="Change Password"
+                        title="Parolni o'zgartirish"
                         style={{ background: '#f59e0b' }}
                       >
                         <Key size={14} />
@@ -132,7 +133,7 @@ const UserTable = ({
                       <button
                         className="btn btn-danger btn-small"
                         onClick={() => onDelete(user)}
-                        title="Delete User"
+                        title="Foydalanuvchini o'chirish"
                       >
                         <Trash2 size={14} />
                       </button>
@@ -152,7 +153,7 @@ const UserTable = ({
         color: '#6b7280',
         textAlign: 'center'
       }}>
-        Showing {filteredUsers.length} of {users.length} users
+        {filteredUsers.length} dan {users.length} foydalanuvchi ko'rsatilmoqda
       </div>
     </div>
   );

@@ -5,6 +5,7 @@ import UserTable from '../components/UserTable';
 import UserForm from '../components/UserForm';
 import Modal, { ConfirmModal, UserDetailModal, ChangePasswordModal } from '../components/Modal';
 import { createUser } from '../types';
+import { t } from '../types/translations';
 
 const Assistants = () => {
   const [assistants, setAssistants] = useState([]);
@@ -45,7 +46,7 @@ const Assistants = () => {
       setAssistants(assistantsRes.data);
       setSubjects(subjectsRes.data);
     } catch (err) {
-      setError(err.response?.data?.detail || 'Failed to fetch assistants');
+      setError('Yordamchilarni yuklashda xatolik yuz berdi');
       console.error('Error fetching assistants:', err);
     } finally {
       setLoading(false);
@@ -69,9 +70,9 @@ const Assistants = () => {
       await managerAPI.createUser(formData);
       await fetchData();
       setShowCreateModal(false);
-      showSuccessMessage('Assistant created successfully!');
+      showSuccessMessage(t('assistantCreated'));
     } catch (err) {
-      showErrorMessage(err.response?.data?.detail || 'Failed to create assistant');
+      showErrorMessage(err.response?.data?.detail || 'Yordamchi yaratishda xatolik');
     } finally {
       setFormLoading(false);
     }
@@ -85,9 +86,9 @@ const Assistants = () => {
       await fetchData();
       setShowEditModal(false);
       setSelectedUser(null);
-      showSuccessMessage('Assistant updated successfully!');
+      showSuccessMessage(t('assistantUpdated'));
     } catch (err) {
-      showErrorMessage(err.response?.data?.detail || 'Failed to update assistant');
+      showErrorMessage(err.response?.data?.detail || 'Yordamchi yangilashda xatolik');
     } finally {
       setFormLoading(false);
     }
@@ -99,9 +100,9 @@ const Assistants = () => {
       await managerAPI.deleteUser(selectedUser.id);
       await fetchData();
       setSelectedUser(null);
-      showSuccessMessage('Assistant deleted successfully!');
+      showSuccessMessage(t('assistantDeleted'));
     } catch (err) {
-      showErrorMessage(err.response?.data?.detail || 'Failed to delete assistant');
+      showErrorMessage(err.response?.data?.detail || 'Yordamchi o\'chirishda xatolik');
     }
   };
 
@@ -111,9 +112,9 @@ const Assistants = () => {
       await managerAPI.changeUserPassword(selectedUser.id, { new_password: newPassword });
       setShowPasswordModal(false);
       setSelectedUser(null);
-      showSuccessMessage('Password changed successfully!');
+      showSuccessMessage('Parol muvaffaqiyatli o\'zgartirildi!');
     } catch (err) {
-      showErrorMessage(err.response?.data?.detail || 'Failed to change password');
+      showErrorMessage(err.response?.data?.detail || 'Parol o\'zgartirishda xatolik');
     }
   };
 
@@ -128,7 +129,7 @@ const Assistants = () => {
       setSelectedUser(response.data);
       setUserSessions(response.data.sessions || []);
     } catch (err) {
-      showErrorMessage('Failed to fetch user details');
+      showErrorMessage('Foydalanuvchi ma\'lumotlarini yuklashda xatolik');
     } finally {
       setDetailLoading(false);
     }
@@ -169,10 +170,10 @@ const Assistants = () => {
     <div>
       {/* Header */}
       <div className="card-header" style={{ marginBottom: '20px' }}>
-        <h2 className="card-title">Assistants Management</h2>
+        <h2 className="card-title">{t('assistantsManagement')}</h2>
         <button className="btn btn-primary" onClick={openCreateModal}>
           <Plus size={16} style={{ marginRight: '8px' }} />
-          Add New Assistant
+          {t('addNewAssistant')}
         </button>
       </div>
 
@@ -205,7 +206,7 @@ const Assistants = () => {
       <Modal
         isOpen={showCreateModal}
         onClose={closeAllModals}
-        title="Create New Assistant"
+        title={t('createNewAssistant')}
       >
         <UserForm
           subjects={subjects}
@@ -220,7 +221,7 @@ const Assistants = () => {
       <Modal
         isOpen={showEditModal}
         onClose={closeAllModals}
-        title="Edit Assistant"
+        title={t('editAssistant')}
       >
         <UserForm
           user={selectedUser}
@@ -246,9 +247,9 @@ const Assistants = () => {
         isOpen={showDeleteModal}
         onClose={closeAllModals}
         onConfirm={handleDelete}
-        title="Delete Assistant"
-        message={`Are you sure you want to delete ${selectedUser?.fullname}? This action cannot be undone.`}
-        confirmText="Delete"
+        title={t('deleteAssistant')}
+        message={`Rostdan ham ${selectedUser?.fullname}ni o'chirmoqchimisiz? Bu amalni qaytarib bo'lmaydi.`}
+        confirmText="O'chirish"
         type="danger"
       />
 

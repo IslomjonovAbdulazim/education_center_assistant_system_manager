@@ -1,44 +1,43 @@
 import React from 'react';
 import { authService } from '../services/auth';
 import { getInitials } from '../types';
+import { t } from '../types/translations';
 
 const Layout = ({ children, activeTab, onTabChange }) => {
   const currentUser = authService.getCurrentUser();
   
   const handleLogout = () => {
-    if (window.confirm('Are you sure you want to logout?')) {
+    if (window.confirm('Rostdan ham chiqmoqchimisiz?')) {
       authService.logout();
       window.location.href = '/login';
     }
   };
 
   const tabs = [
-    { id: 'dashboard', label: 'Dashboard' },
-    { id: 'assistants', label: 'Assistants' },
-    { id: 'students', label: 'Students' },
-    { id: 'subjects', label: 'Subjects' }
+    { id: 'dashboard', label: t('dashboard') },
+    { id: 'assistants', label: t('assistants') },
+    { id: 'students', label: t('students') },
+    { id: 'subjects', label: t('subjects') }
   ];
 
   return (
     <div>
-      {/* Header */}
       <div className="header">
         <div className="header-content">
-          <h1>Manager Dashboard</h1>
+          <h1>{t('managerDashboard')}</h1>
           <div className="user-info">
             <div className="user-avatar">
               {currentUser ? getInitials(currentUser.fullname) : 'M'}
             </div>
-            <span>{currentUser?.fullname || 'Manager'}</span>
+            <span>{currentUser?.fullname || 'Menejer'}</span>
             <button className="logout-btn" onClick={handleLogout}>
-              Logout
+              {t('logout')}
             </button>
           </div>
         </div>
       </div>
 
       <div className="container">
-        {/* Navigation Tabs */}
         <div className="nav-tabs">
           {tabs.map(tab => (
             <button
@@ -50,8 +49,6 @@ const Layout = ({ children, activeTab, onTabChange }) => {
             </button>
           ))}
         </div>
-
-        {/* Content */}
         {children}
       </div>
     </div>

@@ -4,6 +4,7 @@ import { Plus } from 'lucide-react';
 import UserTable from '../components/UserTable';
 import UserForm from '../components/UserForm';
 import Modal, { ConfirmModal, UserDetailModal, ChangePasswordModal } from '../components/Modal';
+import { t } from '../types/translations';
 
 const Students = () => {
   const [students, setStudents] = useState([]);
@@ -44,7 +45,7 @@ const Students = () => {
       setStudents(studentsRes.data);
       setSubjects(subjectsRes.data);
     } catch (err) {
-      setError(err.response?.data?.detail || 'Failed to fetch students');
+      setError('Talabalarni yuklashda xatolik yuz berdi');
       console.error('Error fetching students:', err);
     } finally {
       setLoading(false);
@@ -65,14 +66,13 @@ const Students = () => {
   const handleCreate = async (formData) => {
     try {
       setFormLoading(true);
-      // Ensure role is set to student
       const studentData = { ...formData, role: 'student' };
       await managerAPI.createUser(studentData);
       await fetchData();
       setShowCreateModal(false);
-      showSuccessMessage('Student created successfully!');
+      showSuccessMessage(t('studentCreated'));
     } catch (err) {
-      showErrorMessage(err.response?.data?.detail || 'Failed to create student');
+      showErrorMessage(err.response?.data?.detail || 'Talaba yaratishda xatolik');
     } finally {
       setFormLoading(false);
     }
@@ -86,9 +86,9 @@ const Students = () => {
       await fetchData();
       setShowEditModal(false);
       setSelectedUser(null);
-      showSuccessMessage('Student updated successfully!');
+      showSuccessMessage(t('studentUpdated'));
     } catch (err) {
-      showErrorMessage(err.response?.data?.detail || 'Failed to update student');
+      showErrorMessage(err.response?.data?.detail || 'Talaba yangilashda xatolik');
     } finally {
       setFormLoading(false);
     }
@@ -100,9 +100,9 @@ const Students = () => {
       await managerAPI.deleteUser(selectedUser.id);
       await fetchData();
       setSelectedUser(null);
-      showSuccessMessage('Student deleted successfully!');
+      showSuccessMessage(t('studentDeleted'));
     } catch (err) {
-      showErrorMessage(err.response?.data?.detail || 'Failed to delete student');
+      showErrorMessage(err.response?.data?.detail || 'Talaba o\'chirishda xatolik');
     }
   };
 
@@ -112,9 +112,9 @@ const Students = () => {
       await managerAPI.changeUserPassword(selectedUser.id, { new_password: newPassword });
       setShowPasswordModal(false);
       setSelectedUser(null);
-      showSuccessMessage('Password changed successfully!');
+      showSuccessMessage('Parol muvaffaqiyatli o\'zgartirildi!');
     } catch (err) {
-      showErrorMessage(err.response?.data?.detail || 'Failed to change password');
+      showErrorMessage(err.response?.data?.detail || 'Parol o\'zgartirishda xatolik');
     }
   };
 
@@ -129,7 +129,7 @@ const Students = () => {
       setSelectedUser(response.data);
       setUserSessions(response.data.sessions || []);
     } catch (err) {
-      showErrorMessage('Failed to fetch user details');
+      showErrorMessage('Foydalanuvchi ma\'lumotlarini yuklashda xatolik');
     } finally {
       setDetailLoading(false);
     }
@@ -170,10 +170,10 @@ const Students = () => {
     <div>
       {/* Header */}
       <div className="card-header" style={{ marginBottom: '20px' }}>
-        <h2 className="card-title">Students Management</h2>
+        <h2 className="card-title">{t('studentsManagement')}</h2>
         <button className="btn btn-primary" onClick={openCreateModal}>
           <Plus size={16} style={{ marginRight: '8px' }} />
-          Add New Student
+          {t('addNewStudent')}
         </button>
       </div>
 
@@ -206,10 +206,10 @@ const Students = () => {
       <Modal
         isOpen={showCreateModal}
         onClose={closeAllModals}
-        title="Create New Student"
+        title={t('createNewStudent')}
       >
         <UserForm
-          user={{ role: 'student' }} // Pre-set role to student
+          user={{ role: 'student' }}
           subjects={subjects}
           onSubmit={handleCreate}
           onCancel={closeAllModals}
@@ -222,7 +222,7 @@ const Students = () => {
       <Modal
         isOpen={showEditModal}
         onClose={closeAllModals}
-        title="Edit Student"
+        title={t('editStudent')}
       >
         <UserForm
           user={selectedUser}
@@ -248,9 +248,9 @@ const Students = () => {
         isOpen={showDeleteModal}
         onClose={closeAllModals}
         onConfirm={handleDelete}
-        title="Delete Student"
-        message={`Are you sure you want to delete ${selectedUser?.fullname}? This action cannot be undone.`}
-        confirmText="Delete"
+        title={t('deleteStudent')}
+        message={`Rostdan ham ${selectedUser?.fullname}ni o'chirmoqchimisiz? Bu amalni qaytarib bo'lmaydi.`}
+        confirmText="O'chirish"
         type="danger"
       />
 

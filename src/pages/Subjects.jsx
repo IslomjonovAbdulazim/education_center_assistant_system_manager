@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { managerAPI } from '../services/api';
-import { Plus, Edit, Trash2, BookOpen, Users, GraduationCap } from 'lucide-react';
+import { Plus, Edit, Trash2, BookOpen, Users, GraduationCap, BarChart3 } from 'lucide-react';
 import Modal, { ConfirmModal } from '../components/Modal';
+import { t } from '../types/translations';
 
 const SubjectForm = ({ subject = null, onSubmit, onCancel, loading = false }) => {
   const [name, setName] = useState('');
@@ -17,12 +18,12 @@ const SubjectForm = ({ subject = null, onSubmit, onCancel, loading = false }) =>
     e.preventDefault();
     
     if (!name.trim()) {
-      setError('Subject name is required');
+      setError('Fan nomi kiritish majburiy');
       return;
     }
 
     if (name.trim().length < 2) {
-      setError('Subject name must be at least 2 characters');
+      setError('Fan nomi kamida 2 ta belgidan iborat bo\'lishi kerak');
       return;
     }
 
@@ -39,7 +40,7 @@ const SubjectForm = ({ subject = null, onSubmit, onCancel, loading = false }) =>
 
       <div className="form-group">
         <label className="form-label">
-          Subject Name <span style={{ color: 'red' }}>*</span>
+          Fan nomi <span style={{ color: 'red' }}>*</span>
         </label>
         <input
           type="text"
@@ -49,7 +50,7 @@ const SubjectForm = ({ subject = null, onSubmit, onCancel, loading = false }) =>
             setName(e.target.value);
             setError('');
           }}
-          placeholder="Enter subject name"
+          placeholder="Fan nomini kiriting"
           required
         />
       </div>
@@ -63,10 +64,10 @@ const SubjectForm = ({ subject = null, onSubmit, onCancel, loading = false }) =>
           {loading ? (
             <>
               <div className="spinner" style={{ marginRight: '8px' }}></div>
-              {subject ? 'Updating...' : 'Creating...'}
+              {subject ? t('updating') : t('creating')}
             </>
           ) : (
-            subject ? 'Update Subject' : 'Create Subject'
+            subject ? 'Fanni yangilash' : 'Fan yaratish'
           )}
         </button>
         <button
@@ -75,7 +76,7 @@ const SubjectForm = ({ subject = null, onSubmit, onCancel, loading = false }) =>
           onClick={onCancel}
           disabled={loading}
         >
-          Cancel
+          {t('cancel')}
         </button>
       </div>
     </form>
@@ -123,15 +124,15 @@ const SubjectCard = ({ subject, onEdit, onDelete }) => {
                 color: '#6b7280',
                 marginTop: '2px'
               }}>
-                Created: {subject.created_at}
+                Yaratilgan: {subject.created_at}
               </div>
             </div>
           </div>
 
           <div style={{ 
             display: 'grid', 
-            gridTemplateColumns: '1fr 1fr', 
-            gap: '16px',
+            gridTemplateColumns: '1fr 1fr 1fr', 
+            gap: '12px',
             marginBottom: '16px'
           }}>
             <div style={{ 
@@ -149,7 +150,7 @@ const SubjectCard = ({ subject, onEdit, onDelete }) => {
                   {subject.assistant_count}
                 </div>
                 <div style={{ fontSize: '12px', color: '#075985' }}>
-                  Assistants
+                  Yordamchilar
                 </div>
               </div>
             </div>
@@ -169,7 +170,27 @@ const SubjectCard = ({ subject, onEdit, onDelete }) => {
                   {subject.student_count}
                 </div>
                 <div style={{ fontSize: '12px', color: '#166534' }}>
-                  Students
+                  Talabalar
+                </div>
+              </div>
+            </div>
+
+            <div style={{ 
+              display: 'flex', 
+              alignItems: 'center', 
+              gap: '8px',
+              padding: '8px 12px',
+              background: '#fef3e2',
+              borderRadius: '6px',
+              border: '1px solid #fed7aa'
+            }}>
+              <BarChart3 size={16} style={{ color: '#ea580c' }} />
+              <div>
+                <div style={{ fontSize: '14px', fontWeight: '500', color: '#9a3412' }}>
+                  {subject.session_count || 0}
+                </div>
+                <div style={{ fontSize: '12px', color: '#c2410c' }}>
+                  Darslar
                 </div>
               </div>
             </div>
@@ -180,14 +201,14 @@ const SubjectCard = ({ subject, onEdit, onDelete }) => {
           <button
             className="btn btn-primary btn-small"
             onClick={() => onEdit(subject)}
-            title="Edit Subject"
+            title="Fanni tahrirlash"
           >
             <Edit size={14} />
           </button>
           <button
             className="btn btn-danger btn-small"
             onClick={() => onDelete(subject)}
-            title="Delete Subject"
+            title="Fanni o'chirish"
           >
             <Trash2 size={14} />
           </button>
@@ -199,6 +220,7 @@ const SubjectCard = ({ subject, onEdit, onDelete }) => {
 
 const Subjects = () => {
   const [subjects, setSubjects] = useState([]);
+  const [subjectSessions, setSubjectSessions] = useState({});
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
@@ -207,26 +229,42 @@ const Subjects = () => {
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
-
-  // Selected subject for operations
   const [selectedSubject, setSelectedSubject] = useState(null);
-  
-  // Form loading state
   const [formLoading, setFormLoading] = useState(false);
 
   useEffect(() => {
-    fetchSubjects();
+    fetchData();
   }, []);
 
-  const fetchSubjects = async () => {
+  const fetchData = async () => {
     try {
       setLoading(true);
       setError('');
       
-      const response = await managerAPI.getSubjects();
-      setSubjects(response.data);
+      // Fetch both subjects and stats in parallel
+      const [subjectsRes, statsRes] = await Promise.all([
+        managerAPI.getSubjects(),
+        managerAPI.getStats()
+      ]);
+      
+      // Create session count mapping from stats
+      const sessionCounts = {};
+      if (statsRes.data.subject_popularity) {
+        statsRes.data.subject_popularity.forEach(item => {
+          sessionCounts[item.subject] = item.sessions;
+        });
+      }
+      
+      // Add session counts to subjects
+      const subjectsWithSessions = subjectsRes.data.map(subject => ({
+        ...subject,
+        session_count: sessionCounts[subject.name] || 0
+      }));
+      
+      setSubjects(subjectsWithSessions);
+      setSubjectSessions(sessionCounts);
     } catch (err) {
-      setError(err.response?.data?.detail || 'Failed to fetch subjects');
+      setError('Fanlarni yuklashda xatolik yuz berdi');
       console.error('Error fetching subjects:', err);
     } finally {
       setLoading(false);
@@ -243,50 +281,46 @@ const Subjects = () => {
     setTimeout(() => setError(''), 5000);
   };
 
-  // Create subject
   const handleCreate = async (formData) => {
     try {
       setFormLoading(true);
       await managerAPI.createSubject(formData);
-      await fetchSubjects();
+      await fetchData();
       setShowCreateModal(false);
-      showSuccessMessage('Subject created successfully!');
+      showSuccessMessage(t('subjectCreated'));
     } catch (err) {
-      showErrorMessage(err.response?.data?.detail || 'Failed to create subject');
+      showErrorMessage(err.response?.data?.detail || 'Fan yaratishda xatolik');
     } finally {
       setFormLoading(false);
     }
   };
 
-  // Update subject
   const handleUpdate = async (formData) => {
     try {
       setFormLoading(true);
       await managerAPI.updateSubject(selectedSubject.id, formData);
-      await fetchSubjects();
+      await fetchData();
       setShowEditModal(false);
       setSelectedSubject(null);
-      showSuccessMessage('Subject updated successfully!');
+      showSuccessMessage(t('subjectUpdated'));
     } catch (err) {
-      showErrorMessage(err.response?.data?.detail || 'Failed to update subject');
+      showErrorMessage(err.response?.data?.detail || 'Fan yangilashda xatolik');
     } finally {
       setFormLoading(false);
     }
   };
 
-  // Delete subject
   const handleDelete = async () => {
     try {
       await managerAPI.deleteSubject(selectedSubject.id);
-      await fetchSubjects();
+      await fetchData();
       setSelectedSubject(null);
-      showSuccessMessage('Subject deleted successfully!');
+      showSuccessMessage(t('subjectDeleted'));
     } catch (err) {
-      showErrorMessage(err.response?.data?.detail || 'Failed to delete subject');
+      showErrorMessage(err.response?.data?.detail || 'Fan o\'chirishda xatolik');
     }
   };
 
-  // Modal handlers
   const openCreateModal = () => {
     setSelectedSubject(null);
     setShowCreateModal(true);
@@ -313,23 +347,21 @@ const Subjects = () => {
     return (
       <div className="loading">
         <div className="spinner"></div>
-        Loading subjects...
+        Fanlar yuklanmoqda...
       </div>
     );
   }
 
   return (
     <div>
-      {/* Header */}
       <div className="card-header" style={{ marginBottom: '20px' }}>
-        <h2 className="card-title">Subjects Management</h2>
+        <h2 className="card-title">{t('subjectsManagement')}</h2>
         <button className="btn btn-primary" onClick={openCreateModal}>
           <Plus size={16} style={{ marginRight: '8px' }} />
-          Add New Subject
+          {t('addNewSubject')}
         </button>
       </div>
 
-      {/* Alerts */}
       {error && (
         <div className="alert alert-error" style={{ marginBottom: '20px' }}>
           {error}
@@ -342,7 +374,6 @@ const Subjects = () => {
         </div>
       )}
 
-      {/* Subjects Grid */}
       {subjects.length === 0 ? (
         <div className="card">
           <div style={{ 
@@ -360,21 +391,21 @@ const Subjects = () => {
               fontSize: '18px',
               fontWeight: '500'
             }}>
-              No subjects found
+              {t('noSubjectsFound')}
             </h3>
             <p style={{ margin: '0 0 24px' }}>
-              Get started by creating your first subject.
+              Birinchi fanni yaratish bilan boshlang.
             </p>
             <button className="btn btn-primary" onClick={openCreateModal}>
               <Plus size={16} style={{ marginRight: '8px' }} />
-              Create First Subject
+              {t('createFirstSubject')}
             </button>
           </div>
         </div>
       ) : (
         <div style={{ 
           display: 'grid', 
-          gridTemplateColumns: 'repeat(auto-fill, minmax(400px, 1fr))', 
+          gridTemplateColumns: 'repeat(auto-fill, minmax(450px, 1fr))', 
           gap: '20px' 
         }}>
           {subjects.map((subject) => (
@@ -388,11 +419,10 @@ const Subjects = () => {
         </div>
       )}
 
-      {/* Create Modal */}
       <Modal
         isOpen={showCreateModal}
         onClose={closeAllModals}
-        title="Create New Subject"
+        title={t('createNewSubject')}
         size="small"
       >
         <SubjectForm
@@ -402,11 +432,10 @@ const Subjects = () => {
         />
       </Modal>
 
-      {/* Edit Modal */}
       <Modal
         isOpen={showEditModal}
         onClose={closeAllModals}
-        title="Edit Subject"
+        title={t('editSubject')}
         size="small"
       >
         <SubjectForm
@@ -417,25 +446,24 @@ const Subjects = () => {
         />
       </Modal>
 
-      {/* Delete Confirmation Modal */}
       <ConfirmModal
         isOpen={showDeleteModal}
         onClose={closeAllModals}
         onConfirm={handleDelete}
-        title="Delete Subject"
+        title={t('deleteSubject')}
         message={
           selectedSubject?.assistant_count > 0 || selectedSubject?.student_count > 0
-            ? `Cannot delete "${selectedSubject?.name}" because it has ${selectedSubject?.assistant_count} assistants and ${selectedSubject?.student_count} students assigned to it. Please reassign them first.`
-            : `Are you sure you want to delete "${selectedSubject?.name}"? This action cannot be undone.`
+            ? `"${selectedSubject?.name}" fanini o'chirib bo'lmaydi chunki unga ${selectedSubject?.assistant_count} yordamchi va ${selectedSubject?.student_count} talaba biriktirilgan. Avval ularni boshqa fanga o'tkazing.`
+            : `Rostdan ham "${selectedSubject?.name}" fanini o'chirmoqchimisiz? Bu amalni qaytarib bo'lmaydi.`
         }
-        confirmText="Delete"
+        confirmText="O'chirish"
         type="danger"
       />
 
       {/* Stats Summary */}
       <div className="card" style={{ marginTop: '30px' }}>
         <h3 className="card-title" style={{ marginBottom: '20px' }}>
-          Subjects Summary
+          {t('subjectsSummary')}
         </h3>
         <div style={{ 
           display: 'grid', 
@@ -452,7 +480,7 @@ const Subjects = () => {
               {subjects.length}
             </div>
             <div style={{ fontSize: '14px', color: '#6b7280' }}>
-              Total Subjects
+              Jami fanlar
             </div>
           </div>
           <div style={{ textAlign: 'center' }}>
@@ -465,7 +493,7 @@ const Subjects = () => {
               {subjects.reduce((sum, s) => sum + s.assistant_count, 0)}
             </div>
             <div style={{ fontSize: '14px', color: '#6b7280' }}>
-              Total Assistants
+              Jami yordamchilar
             </div>
           </div>
           <div style={{ textAlign: 'center' }}>
@@ -478,7 +506,20 @@ const Subjects = () => {
               {subjects.reduce((sum, s) => sum + s.student_count, 0)}
             </div>
             <div style={{ fontSize: '14px', color: '#6b7280' }}>
-              Total Students
+              Jami talabalar
+            </div>
+          </div>
+          <div style={{ textAlign: 'center' }}>
+            <div style={{ 
+              fontSize: '2rem', 
+              fontWeight: '700', 
+              color: '#ea580c',
+              marginBottom: '4px'
+            }}>
+              {subjects.reduce((sum, s) => sum + (s.session_count || 0), 0)}
+            </div>
+            <div style={{ fontSize: '14px', color: '#6b7280' }}>
+              Jami darslar
             </div>
           </div>
         </div>

@@ -1,12 +1,13 @@
 import React, { useEffect } from 'react';
 import { X } from 'lucide-react';
+import { t } from '../types/translations';
 
 const Modal = ({ 
   isOpen, 
   onClose, 
   title, 
   children, 
-  size = 'medium' // 'small', 'medium', 'large'
+  size = 'medium'
 }) => {
   useEffect(() => {
     const handleEscape = (e) => {
@@ -60,16 +61,15 @@ const Modal = ({
   );
 };
 
-// Specific modal types
 export const ConfirmModal = ({ 
   isOpen, 
   onClose, 
   onConfirm, 
-  title = "Confirm Action", 
+  title = "Amalni tasdiqlash", 
   message,
-  confirmText = "Confirm",
-  cancelText = "Cancel",
-  type = "danger" // 'danger', 'warning', 'info'
+  confirmText = "Tasdiqlash",
+  cancelText = "Bekor qilish",
+  type = "danger"
 }) => {
   return (
     <Modal isOpen={isOpen} onClose={onClose} title={title} size="small">
@@ -109,11 +109,11 @@ export const UserDetailModal = ({
   if (!user) return null;
 
   return (
-    <Modal isOpen={isOpen} onClose={onClose} title="User Details" size="large">
+    <Modal isOpen={isOpen} onClose={onClose} title="Foydalanuvchi tafsilotlari" size="large">
       {loading ? (
         <div className="loading">
           <div className="spinner"></div>
-          Loading user details...
+          Foydalanuvchi ma'lumotlari yuklanmoqda...
         </div>
       ) : (
         <div>
@@ -128,29 +128,29 @@ export const UserDetailModal = ({
             borderRadius: '8px'
           }}>
             <div>
-              <strong>Full Name:</strong> {user.fullname}
+              <strong>To'liq ism:</strong> {user.fullname}
             </div>
             <div>
-              <strong>Phone:</strong> {user.phone}
+              <strong>Telefon:</strong> {user.phone}
             </div>
             <div>
-              <strong>Role:</strong> {user.role}
+              <strong>Rol:</strong> {user.role === 'assistant' ? 'Yordamchi' : 'Talaba'}
             </div>
             <div>
-              <strong>Subject:</strong> {user.subject_field || 'N/A'}
+              <strong>Fan:</strong> {user.subject_field || 'Belgilanmagan'}
             </div>
             <div>
-              <strong>Average Rating:</strong> {user.avg_rating || 0}/5
+              <strong>O'rtacha baho:</strong> {user.avg_rating || 0}/5
             </div>
             <div>
-              <strong>Total Sessions:</strong> {user.total_sessions || 0}
+              <strong>Jami darslar:</strong> {user.total_sessions || 0}
             </div>
           </div>
 
           {/* Sessions */}
           <div>
             <h4 style={{ marginBottom: '16px', color: '#1e293b' }}>
-              Recent Sessions ({sessions.length})
+              So'nggi darslar ({sessions.length})
             </h4>
             {sessions.length === 0 ? (
               <div style={{ 
@@ -160,7 +160,7 @@ export const UserDetailModal = ({
                 background: '#f8fafc',
                 borderRadius: '8px'
               }}>
-                No sessions found
+                Darslar topilmadi
               </div>
             ) : (
               <div style={{ maxHeight: '300px', overflowY: 'auto' }}>
@@ -194,7 +194,8 @@ export const UserDetailModal = ({
                         color: session.attendance === 'present' ? '#166534' : 
                                session.attendance === 'absent' ? '#dc2626' : '#64748b'
                       }}>
-                        {session.attendance}
+                        {session.attendance === 'present' ? 'Keldi' : 
+                         session.attendance === 'absent' ? 'Kelmadi' : 'Kutilmoqda'}
                       </div>
                       {session.rating && (
                         <div style={{ fontSize: '12px', color: '#f59e0b', marginTop: '4px' }}>
@@ -229,12 +230,12 @@ export const ChangePasswordModal = ({
     e.preventDefault();
     
     if (!newPassword || newPassword.length < 4) {
-      setError('Password must be at least 4 characters');
+      setError(t('passwordValidation'));
       return;
     }
     
     if (newPassword !== confirmPassword) {
-      setError('Passwords do not match');
+      setError(t('passwordsNotMatch'));
       return;
     }
 
@@ -249,11 +250,11 @@ export const ChangePasswordModal = ({
   };
 
   return (
-    <Modal isOpen={isOpen} onClose={handleClose} title="Change Password" size="small">
+    <Modal isOpen={isOpen} onClose={handleClose} title={t('changePassword')} size="small">
       <form onSubmit={handleSubmit}>
         <div style={{ marginBottom: '20px' }}>
           <p style={{ color: '#6b7280', marginBottom: '16px' }}>
-            Change password for: <strong>{user?.fullname}</strong>
+            {t('changePasswordFor')} <strong>{user?.fullname}</strong>
           </p>
           
           {error && (
@@ -263,7 +264,7 @@ export const ChangePasswordModal = ({
           )}
 
           <div className="form-group">
-            <label className="form-label">New Password</label>
+            <label className="form-label">{t('newPassword')}</label>
             <input
               type="password"
               className="form-input"
@@ -272,13 +273,13 @@ export const ChangePasswordModal = ({
                 setNewPassword(e.target.value);
                 setError('');
               }}
-              placeholder="Enter new password"
+              placeholder="Yangi parolni kiriting"
               required
             />
           </div>
 
           <div className="form-group">
-            <label className="form-label">Confirm Password</label>
+            <label className="form-label">{t('confirmPassword')}</label>
             <input
               type="password"
               className="form-input"
@@ -287,7 +288,7 @@ export const ChangePasswordModal = ({
                 setConfirmPassword(e.target.value);
                 setError('');
               }}
-              placeholder="Confirm new password"
+              placeholder="Yangi parolni tasdiqlang"
               required
             />
           </div>
@@ -299,7 +300,7 @@ export const ChangePasswordModal = ({
             className="btn btn-primary"
             disabled={loading}
           >
-            {loading ? 'Changing...' : 'Change Password'}
+            {loading ? 'O\'zgartirilmoqda...' : 'Parolni o\'zgartirish'}
           </button>
           <button
             type="button"
@@ -307,7 +308,7 @@ export const ChangePasswordModal = ({
             onClick={handleClose}
             disabled={loading}
           >
-            Cancel
+            {t('cancel')}
           </button>
         </div>
       </form>

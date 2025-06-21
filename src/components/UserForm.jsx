@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { validatePhone, validateFullname, validatePassword } from '../types';
+import { t } from '../types/translations';
 
 const UserForm = ({ 
   user = null, 
@@ -7,7 +8,7 @@ const UserForm = ({
   onSubmit, 
   onCancel, 
   loading = false,
-  mode = 'create' // 'create' or 'edit'
+  mode = 'create'
 }) => {
   const [formData, setFormData] = useState({
     fullname: '',
@@ -23,7 +24,7 @@ const UserForm = ({
       setFormData({
         fullname: user.fullname || '',
         phone: user.phone || '+998',
-        password: '', // Don't pre-fill password for editing
+        password: '',
         role: user.role || 'assistant',
         subject_field: user.subject_field || ''
       });
@@ -37,7 +38,6 @@ const UserForm = ({
       [name]: value
     }));
     
-    // Clear error when user starts typing
     if (errors[name]) {
       setErrors(prev => ({
         ...prev,
@@ -50,19 +50,19 @@ const UserForm = ({
     const newErrors = {};
 
     if (!validateFullname(formData.fullname)) {
-      newErrors.fullname = 'Full name must be at least 2 characters';
+      newErrors.fullname = t('nameValidation');
     }
 
     if (!validatePhone(formData.phone)) {
-      newErrors.phone = 'Phone must be in format +998XXXXXXXXX';
+      newErrors.phone = t('phoneValidation');
     }
 
     if (mode === 'create' && !validatePassword(formData.password)) {
-      newErrors.password = 'Password must be at least 4 characters';
+      newErrors.password = t('passwordValidation');
     }
 
     if (!formData.role) {
-      newErrors.role = 'Role is required';
+      newErrors.role = 'Rol kiritish majburiy';
     }
 
     setErrors(newErrors);
@@ -78,7 +78,6 @@ const UserForm = ({
 
     const submitData = { ...formData };
     
-    // For edit mode, only include password if it's not empty
     if (mode === 'edit' && !submitData.password) {
       delete submitData.password;
     }
@@ -91,7 +90,7 @@ const UserForm = ({
       {/* Full Name */}
       <div className="form-group">
         <label className="form-label">
-          Full Name <span style={{ color: 'red' }}>*</span>
+          To'liq ism <span style={{ color: 'red' }}>*</span>
         </label>
         <input
           type="text"
@@ -99,7 +98,7 @@ const UserForm = ({
           className={`form-input ${errors.fullname ? 'error' : ''}`}
           value={formData.fullname}
           onChange={handleChange}
-          placeholder="Enter full name"
+          placeholder="To'liq ismni kiriting"
           required
         />
         {errors.fullname && (
@@ -112,7 +111,7 @@ const UserForm = ({
       {/* Phone */}
       <div className="form-group">
         <label className="form-label">
-          Phone Number <span style={{ color: 'red' }}>*</span>
+          Telefon raqam <span style={{ color: 'red' }}>*</span>
         </label>
         <input
           type="tel"
@@ -133,8 +132,8 @@ const UserForm = ({
       {/* Password */}
       <div className="form-group">
         <label className="form-label">
-          Password {mode === 'create' && <span style={{ color: 'red' }}>*</span>}
-          {mode === 'edit' && <span style={{ color: '#6b7280', fontSize: '12px' }}>(leave empty to keep current)</span>}
+          Parol {mode === 'create' && <span style={{ color: 'red' }}>*</span>}
+          {mode === 'edit' && <span style={{ color: '#6b7280', fontSize: '12px' }}>(bo'sh qoldiring, hozirgi parolni saqlash uchun)</span>}
         </label>
         <input
           type="password"
@@ -142,7 +141,7 @@ const UserForm = ({
           className={`form-input ${errors.password ? 'error' : ''}`}
           value={formData.password}
           onChange={handleChange}
-          placeholder={mode === 'create' ? "Enter password" : "Enter new password"}
+          placeholder={mode === 'create' ? "Parolni kiriting" : "Yangi parolni kiriting"}
           required={mode === 'create'}
         />
         {errors.password && (
@@ -155,7 +154,7 @@ const UserForm = ({
       {/* Role */}
       <div className="form-group">
         <label className="form-label">
-          Role <span style={{ color: 'red' }}>*</span>
+          Rol <span style={{ color: 'red' }}>*</span>
         </label>
         <select
           name="role"
@@ -164,8 +163,8 @@ const UserForm = ({
           onChange={handleChange}
           required
         >
-          <option value="assistant">Assistant</option>
-          <option value="student">Student</option>
+          <option value="assistant">Yordamchi</option>
+          <option value="student">Talaba</option>
         </select>
         {errors.role && (
           <div style={{ color: '#dc2626', fontSize: '12px', marginTop: '4px' }}>
@@ -176,7 +175,7 @@ const UserForm = ({
 
       {/* Subject Field */}
       <div className="form-group">
-        <label className="form-label">Subject Field</label>
+        <label className="form-label">Fan sohasi</label>
         {subjects.length > 0 ? (
           <select
             name="subject_field"
@@ -184,7 +183,7 @@ const UserForm = ({
             value={formData.subject_field}
             onChange={handleChange}
           >
-            <option value="">Select a subject</option>
+            <option value="">Fanni tanlang</option>
             {subjects.map(subject => (
               <option key={subject.id} value={subject.name}>
                 {subject.name}
@@ -198,7 +197,7 @@ const UserForm = ({
             className="form-input"
             value={formData.subject_field}
             onChange={handleChange}
-            placeholder="Enter subject field"
+            placeholder="Fan sohasini kiriting"
           />
         )}
       </div>
@@ -213,10 +212,10 @@ const UserForm = ({
           {loading ? (
             <>
               <div className="spinner" style={{ marginRight: '8px' }}></div>
-              {mode === 'create' ? 'Creating...' : 'Updating...'}
+              {mode === 'create' ? t('creating') : t('updating')}
             </>
           ) : (
-            mode === 'create' ? 'Create User' : 'Update User'
+            mode === 'create' ? 'Foydalanuvchi yaratish' : 'Foydalanuvchini yangilash'
           )}
         </button>
         <button
@@ -225,7 +224,7 @@ const UserForm = ({
           onClick={onCancel}
           disabled={loading}
         >
-          Cancel
+          {t('cancel')}
         </button>
       </div>
     </form>
